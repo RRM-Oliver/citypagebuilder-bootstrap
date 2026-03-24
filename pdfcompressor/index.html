@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Compressor & Meta Editor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Libraries for PDF manipulation and rasterization -->
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="../" class="back-link">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Tools
+            </a>
+            <h1>PDF Compressor & Meta Editor</h1>
+            <p class="subtitle">Compress and edit PDF metadata directly in your browser.</p>
+        </header>
+
+        <main>
+            <div id="drop-zone" class="drop-zone">
+                <div class="drop-zone-content">
+                    <svg class="drop-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <p>Drag & drop your PDF here or <span>browse</span></p>
+                    <input type="file" id="file-input" accept="application/pdf" hidden>
+                </div>
+            </div>
+
+            <div id="editor-section" class="editor-section hidden">
+                <div class="card file-info">
+                    <div class="file-details">
+                        <div class="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <div class="text">
+                            <h3 id="original-filename">document.pdf</h3>
+                            <p id="original-size">0 KB</p>
+                        </div>
+                    </div>
+                    <button id="remove-file" class="btn-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l18 18" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="grid">
+                    <section class="card settings">
+                        <h2>Compression Quality</h2>
+                        <div class="slider-container">
+                            <div class="slider-header">
+                                <span>Quality</span>
+                                <span id="quality-value">85%</span>
+                            </div>
+                            <input type="range" id="quality-slider" min="50" max="100" value="85">
+                            <p class="hint">Lower quality results in smaller file sizes. <strong>Note:</strong> This method rasterizes the PDF (converts pages to images), which removes text selection.</p>
+                        </div>
+
+                        <h2>Output Filename</h2>
+                        <div class="input-group">
+                            <input type="text" id="target-filename" placeholder="Output filename (without .pdf)">
+                            <span class="suffix">.pdf</span>
+                        </div>
+                    </section>
+
+                    <section class="card metadata">
+                        <h2>PDF Metadata</h2>
+                        <div class="meta-grid">
+                            <div class="input-field">
+                                <label for="meta-title">Title</label>
+                                <input type="text" id="meta-title" placeholder="Document Title">
+                            </div>
+                            <div class="input-field">
+                                <label for="meta-author">Author</label>
+                                <input type="text" id="meta-author" placeholder="Author Name">
+                            </div>
+                            <div class="input-field">
+                                <label for="meta-subject">Subject</label>
+                                <input type="text" id="meta-subject" placeholder="Document Subject">
+                            </div>
+                            <div class="input-field">
+                                <label for="meta-keywords">Keywords</label>
+                                <input type="text" id="meta-keywords" placeholder="keyword1, keyword2">
+                            </div>
+                            <div class="input-field">
+                                <label for="meta-creator">Creator</label>
+                                <input type="text" id="meta-creator" placeholder="Application Creator">
+                            </div>
+                            <div class="input-field">
+                                <label for="meta-producer">Producer</label>
+                                <input type="text" id="meta-producer" placeholder="PDF Producer">
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="actions">
+                    <button id="process-btn" class="btn-primary">
+                        <span class="btn-text">Compress & Download</span>
+                        <div class="loader hidden"></div>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            &copy; 2026 Web Support Tools • Privacy-first: All processing happens in your browser.
+        </footer>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
