@@ -112,6 +112,8 @@
                                     <div><label style="font-size: 10px;">PB</label><select v-model="theme.cta.pb" style="font-size: 11px; height: 24px;"><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
                                     <div><label style="font-size: 10px;">PS</label><select v-model="theme.cta.ps" style="font-size: 11px; height: 24px;"><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
                                     <div><label style="font-size: 10px;">PE</label><select v-model="theme.cta.pe" style="font-size: 11px; height: 24px;"><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                    <div><label style="font-size: 10px;">MT</label><select v-model="theme.cta.mt" style="font-size: 11px; height: 24px;"><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                    <div><label style="font-size: 10px;">MB</label><select v-model="theme.cta.mb" style="font-size: 11px; height: 24px;"><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
                                 </div>
                             </div>
                         </div>
@@ -430,7 +432,7 @@
                         h3: { fsMobile: 24, fsTablet: 26, fsDesktop: 28, color: '#111827', mb: '2', mt: '0', fontFamily: '' },
                         h4: { fsMobile: 20, fsTablet: 22, fsDesktop: 24, color: '#111827', mb: '2', mt: '0', fontFamily: '' },
                         h5: { fsMobile: 18, fsTablet: 18, fsDesktop: 20, color: '#111827', mb: '2', mt: '0', fontFamily: '' },
-                        cta: { pt: '2', pb: '2', ps: '4', pe: '4', textColor: '#ffffff', bgColor: '#0d6efd', bgHoverColor: '#0b5ed7', borderRadius: '6', fontFamily: '', fontSize: 16 }
+                        cta: { pt: '2', pb: '2', ps: '4', pe: '4', mt: '3', mb: '3', textColor: '#ffffff', bgColor: '#0d6efd', bgHoverColor: '#0b5ed7', borderRadius: '6', fontFamily: '', fontSize: 16 }
                     }
                 }
             },
@@ -540,7 +542,7 @@
                             if (sCss.length > 0) {
                                 let sClsName = `custom-sec-${sec.id.substring(0,5)}`;
                                 sClasses.push(sClsName);
-                                cssRules.push(`.${sClsName} { ${sCss.join(' ')} }`);
+                                cssRules.push(`.${sClsName} { ${sCss.join(' !important; ')} !important; }`);
                             }
                             secClassAttr = ` class="${sClasses.join(' ')}"`;
                         }
@@ -584,7 +586,7 @@
                                             if (el.pb !== undefined && el.pb !== '') hClasses.push(`pb-${el.pb}`);
 
                                             let hCss = [];
-                                            if (el.color && el.color !== '#000000') hCss.push(`color: ${el.color};`);
+                                            if (el.color && el.color !== '#000000') hCss.push(`color: ${el.color} !important;`);
                                             if (el.fontFamily) hCss.push(`font-family: ${el.fontFamily};`);
                                             
                                             if (el.mt === undefined || el.mt === '') hCss.push(`margin-top: 0;`); 
@@ -639,10 +641,11 @@
                                     } 
                                     else if (el.type === 'cta') {
                                         let cClasses = [clsid];
-                                        if (el.mt !== undefined && el.mt !== '') cClasses.push(`mt-${el.mt}`);
-                                        if (el.mb !== undefined && el.mb !== '') cClasses.push(`mb-${el.mb}`);
                                         
-                                        if (!el.overrideTheme) {
+                                        if (el.overrideTheme) {
+                                            if (el.mt !== undefined && el.mt !== '') cClasses.push(`mt-${el.mt}`);
+                                            if (el.mb !== undefined && el.mb !== '') cClasses.push(`mb-${el.mb}`);
+                                        } else {
                                             if (this.theme.cta.mt) cClasses.push(`mt-${this.theme.cta.mt}`);
                                             if (this.theme.cta.mb) cClasses.push(`mb-${this.theme.cta.mb}`);
                                         }
@@ -659,8 +662,8 @@
                                             if (el.ps !== undefined && el.ps !== '') btnClasses.push(`ps-${el.ps}`);
                                             if (el.pe !== undefined && el.pe !== '') btnClasses.push(`pe-${el.pe}`);
                                             
-                                            if (el.textColor) btnCss.push(`color: ${el.textColor};`);
-                                            if (el.bgColor) btnCss.push(`background-color: ${el.bgColor};`);
+                                            if (el.textColor) btnCss.push(`color: ${el.textColor} !important;`);
+                                            if (el.bgColor) btnCss.push(`background-color: ${el.bgColor} !important;`);
 
                                             finalBtnClasses = `${clsid}-btn btn`;
                                             if (btnClasses.length > 0) finalBtnClasses += ' ' + btnClasses.join(' ');
@@ -746,7 +749,7 @@
                     finalCss += `/* Global Theme Styles */\n`;
                     ['h1', 'h2', 'h3', 'h4', 'h5'].forEach(tag => {
                         const t = this.theme[tag];
-                        let tCss = [`color: ${t.color};`, `margin-top: 0;`, `font-size: ${t.fsMobile}px;`];
+                        let tCss = [`color: ${t.color} !important;`, `margin-top: 0;`, `font-size: ${t.fsMobile}px;`];
                         if (t.fontFamily) tCss.push(`font-family: ${t.fontFamily};`);
                         finalCss += `${tag} { ${tCss.join(' ')} }\n`;
                         finalCss += `@media (min-width: 768px) { ${tag} { font-size: ${t.fsTablet}px; } }\n`;
