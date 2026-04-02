@@ -668,8 +668,8 @@
                                             finalBtnClasses = `${clsid}-btn btn`;
                                             if (btnClasses.length > 0) finalBtnClasses += ' ' + btnClasses.join(' ');
                                             
-                                            cssRules.push(`.${clsid}-btn { ${btnCss.join(' ')} text-decoration: none; border-radius: 6px; font-weight: bold; transition: all 0.3s; display: inline-block; }`);
-                                            cssRules.push(`.${clsid}-btn:hover { background-color: ${el.bgHoverColor||'#0b5ed7'}; color: ${el.textColor||'#fff'}; }`);
+                                            cssRules.push(`.${clsid}-btn { ${btnCss.join(' ')} text-decoration: none; border-radius: 6px; font-weight: bold; transition: all 0.3s; display: inline-block; white-space: pre-wrap !important; }`);
+                                            cssRules.push(`.${clsid}-btn:hover { background-color: ${el.bgHoverColor||'#0b5ed7'} !important; color: ${el.textColor||'#fff'} !important; }`);
                                         } else {
                                             finalBtnClasses = 'btn btn-theme';
                                             const tc = this.theme.cta;
@@ -757,7 +757,7 @@
                     });
                     
                     const tc = this.theme.cta;
-                    let ctaCss = [`color: ${tc.textColor} !important;`, `background-color: ${tc.bgColor} !important;`, `border-radius: ${tc.borderRadius}px !important;`, `font-weight: bold;`, `transition: all 0.3s;`, `display: inline-block;`, `text-decoration: none;`];
+                    let ctaCss = [`color: ${tc.textColor} !important;`, `background-color: ${tc.bgColor} !important;`, `border-radius: ${tc.borderRadius}px !important;`, `font-weight: bold;`, `transition: all 0.3s;`, `display: inline-block;`, `text-decoration: none;`, `white-space: pre-wrap !important;`];
                     if (tc.fontFamily) ctaCss.push(`font-family: ${tc.fontFamily};`);
                     if (tc.fontSize) ctaCss.push(`font-size: ${tc.fontSize}px !important;`);
                     finalCss += `.btn-theme { ${ctaCss.join(' ')} }\n`;
