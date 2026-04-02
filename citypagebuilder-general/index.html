@@ -63,14 +63,68 @@
                 </div>
 
                 <div class="section" style="border-left: 4px solid #3b82f6;">
-                    <h3>Page Settings (Custom Code)</h3>
-                    <div class="form-group">
-                        <label>Custom CSS (appended at end of auto-generated CSS)</label>
-                        <textarea v-model="customCss" placeholder=".my-class { color: red; }"></textarea>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h3 style="margin: 0;">Global Design & Code</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="outline" @click="activeTab = 'theme'" :class="{ 'active': activeTab === 'theme' }" style="padding: 4px 10px; font-size: 12px;">Theme</button>
+                            <button class="outline" @click="activeTab = 'code'" :class="{ 'active': activeTab === 'code' }" style="padding: 4px 10px; font-size: 12px;">Code</button>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Custom JS</label>
-                        <textarea v-model="customJs" placeholder="console.log('Hello World');"></textarea>
+
+                    <div v-if="activeTab === 'theme'">
+                        <div style="margin-top: 5px;">
+                            <h4 style="font-size: 14px; text-transform: uppercase; color: #6b7280; letter-spacing: 0.05em;">Heading Defaults</h4>
+                            <div v-for="tag in ['h1', 'h2', 'h3', 'h4', 'h5']" :key="tag" style="margin-bottom: 20px; background: #f9fafb; padding: 12px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <strong style="text-transform: uppercase;">{{ tag }} Settings</strong>
+                                    <input type="color" v-model="theme[tag].color" style="height: 24px; padding: 0; width: 40px; border: none;">
+                                </div>
+                                <div class="form-group" style="margin-bottom: 8px;">
+                                    <label style="font-size: 10px;">{{ tag.toUpperCase() }} Font Family</label>
+                                    <input type="text" v-model="theme[tag].fontFamily" placeholder="Default font" style="font-size: 11px; padding: 4px;">
+                                </div>
+                                <div class="flex-row">
+                                    <div><label style="font-size: 10px;">FS Mobile</label><input type="number" v-model="theme[tag].fsMobile" style="font-size: 12px; padding: 4px;"></div>
+                                    <div><label style="font-size: 10px;">FS Tablet</label><input type="number" v-model="theme[tag].fsTablet" style="font-size: 12px; padding: 4px;"></div>
+                                    <div><label style="font-size: 10px;">FS Desktop</label><input type="number" v-model="theme[tag].fsDesktop" style="font-size: 12px; padding: 4px;"></div>
+                                    <div><label style="font-size: 10px;">Mt</label><select v-model="theme[tag].mt" style="font-size: 12px; height: 26px;"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                    <div><label style="font-size: 10px;">Mb</label><select v-model="theme[tag].mb" style="font-size: 12px; height: 26px;"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 15px; border-top: 1px solid #e5e7eb; padding-top: 15px;">
+                            <h4 style="font-size: 14px; text-transform: uppercase; color: #6b7280; letter-spacing: 0.05em;">CTA Default style</h4>
+                            <div style="background: #f9fafb; padding: 12px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                <div class="form-group" style="margin-bottom: 8px;">
+                                    <label style="font-size: 10px;">CTA Font Family</label>
+                                    <input type="text" v-model="theme.cta.fontFamily" placeholder="Default font" style="font-size: 11px; padding: 4px;">
+                                </div>
+                                <div class="flex-row" style="margin-bottom: 10px;">
+                                    <div><label style="font-size: 10px;">Text Color</label><input type="color" v-model="theme.cta.textColor" style="height: 24px; padding: 0;"></div>
+                                    <div><label style="font-size: 10px;">Bg Color</label><input type="color" v-model="theme.cta.bgColor" style="height: 24px; padding: 0;"></div>
+                                    <div><label style="font-size: 10px;">Hover Color</label><input type="color" v-model="theme.cta.bgHoverColor" style="height: 24px; padding: 0;"></div>
+                                    <div><label style="font-size: 10px;">Radius</label><input type="number" v-model="theme.cta.borderRadius" style="font-size: 12px; height: 24px; padding: 4px;"></div>
+                                </div>
+                                <div class="flex-row">
+                                    <div><label style="font-size: 10px;">PT</label><select v-model="theme.cta.pt" style="font-size: 11px; height: 24px;"><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                    <div><label style="font-size: 10px;">PB</label><select v-model="theme.cta.pb" style="font-size: 11px; height: 24px;"><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                    <div><label style="font-size: 10px;">PS</label><select v-model="theme.cta.ps" style="font-size: 11px; height: 24px;"><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                    <div><label style="font-size: 10px;">PE</label><select v-model="theme.cta.pe" style="font-size: 11px; height: 24px;"><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="activeTab === 'code'">
+                        <div class="form-group">
+                            <label>Custom CSS (appended at end)</label>
+                            <textarea v-model="customCss" placeholder=".my-class { color: red; }"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Custom JS</label>
+                            <textarea v-model="customJs" placeholder="console.log('Hello World');"></textarea>
+                        </div>
                     </div>
                 </div>
 
@@ -81,7 +135,10 @@
                             <button class="outline" @click="moveSection(sIdx, -1)" :disabled="sIdx === 0" style="padding: 2px 6px; font-size: 11px;">↑</button>
                             <button class="outline" @click="moveSection(sIdx, 1)" :disabled="sIdx === sections.length - 1" style="padding: 2px 6px; font-size: 11px;">↓</button>
                         </div>
-                        <button class="danger" @click="removeSection(sIdx)">Remove</button>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="outline" @click="duplicateSection(sIdx)" style="padding: 2px 6px; font-size: 11px;">Duplicate</button>
+                            <button class="danger" @click="removeSection(sIdx)">Remove</button>
+                        </div>
                     </div>
                     <div class="flex-row" style="margin-bottom: 10px; background: #f9fafb; padding: 10px; border-radius: 4px;">
                         <div><label>Pt <small>(y)</small></label><select v-model="sec.pt"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
@@ -108,6 +165,7 @@
                                 </select>
                                 <label v-if="row.columns.length === 2" style="font-size: 13px; cursor: pointer;"><input type="checkbox" v-model="row.reverse"> Reverse</label>
                                 <button class="outline" v-if="row.columns.length < 2" @click="addColumn(row)">+ Add Col</button>
+                                <button class="outline" @click="duplicateRow(sec, rIdx)">Duplicate</button>
                                 <button class="danger" @click="removeRow(sec, rIdx)">Del Row</button>
                             </div>
                         </div>
@@ -155,17 +213,22 @@
                                                 </div>
                                                 <div><label>Text Color</label><input type="color" v-model="el.color"></div>
                                             </div>
-                                            <div class="flex-row form-group">
-                                                <div><label>Title Size Mobile (<767)</label><input type="number" v-model="el.fsMobile"></div>
-                                                <div><label>Title Size Tablet (768-991)</label><input type="number" v-model="el.fsTablet"></div>
-                                                <div><label>Title Size Desktop (>992)</label><input type="number" v-model="el.fsDesktop"></div>
-                                                <div><label>Font Family Override</label><input type="text" v-model="el.fontFamily" placeholder="e.g. 'Inter', sans-serif"></div>
+                                            <div class="flex-row form-group" style="margin-top: 10px; background: #fff; padding: 10px; border-radius: 4px; border: 1px solid #e5e7eb;">
+                                                <label style="width: 100%; font-size: 11px; color: #ef4444; border-bottom: 1px solid #fee2e2; padding-bottom: 5px; margin-bottom: 8px;"><input type="checkbox" v-model="el.overrideTheme"> OVERRIDE GLOBAL STYLE</label>
+                                                <div v-if="el.overrideTheme" style="display: contents;">
+                                                    <div><label>Mt</label><select v-model="el.mt"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                                    <div><label>Mb</label><select v-model="el.mb"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                                    <div><label>Pt</label><select v-model="el.pt"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                                    <div><label>Pb</label><select v-model="el.pb"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                                </div>
+                                                <div v-else style="font-size: 11px; color: #6b7280;">Using defaults from Page Settings</div>
                                             </div>
-                                            <div class="flex-row form-group">
-                                                <div><label>Mt</label><select v-model="el.mt"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
-                                                <div><label>Mb</label><select v-model="el.mb"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
-                                                <div><label>Pt</label><select v-model="el.pt"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
-                                                <div><label>Pb</label><select v-model="el.pb"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                            <div class="flex-row form-group" v-if="el.overrideTheme">
+                                                <div><label>Title Size Mob</label><input type="number" v-model="el.fsMobile"></div>
+                                                <div><label>Title Size Tab</label><input type="number" v-model="el.fsTablet"></div>
+                                                <div><label>Title Size Desk</label><input type="number" v-model="el.fsDesktop"></div>
+                                                <div><label>Font Family</label><input type="text" v-model="el.fontFamily"></div>
+                                                <div><label>Color</label><input type="color" v-model="el.color"></div>
                                             </div>
                                         </div>
 
@@ -236,31 +299,32 @@
                                                     <option value="right">Right</option>
                                                 </select>
                                             </div>
-                                            <div class="flex-row form-group">
-                                                <div><label>Mt</label><select v-model="el.mt"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
-                                                <div><label>Mb</label><select v-model="el.mb"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
-                                                <div><label>Ms (L)</label><select v-model="el.ms"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
-                                                <div><label>Me (R)</label><select v-model="el.me"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                            <div class="flex-row form-group" style="margin-top: 10px; background: #fff; padding: 10px; border-radius: 4px; border: 1px solid #e5e7eb;">
+                                                <label style="width: 100%; font-size: 11px; color: #ef4444; border-bottom: 1px solid #fee2e2; padding-bottom: 5px; margin-bottom: 8px;"><input type="checkbox" v-model="el.overrideTheme"> OVERRIDE GLOBAL STYLE</label>
+                                                <div v-if="el.overrideTheme" style="display: contents;">
+                                                    <div><label>Mt</label><select v-model="el.mt"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                                    <div><label>Mb</label><select v-model="el.mb"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                                    <div><label>TextColor</label><input type="color" v-model="el.textColor"></div>
+                                                    <div><label>Bg Normal</label><input type="color" v-model="el.bgColor"></div>
+                                                    <div><label>Bg Hover</label><input type="color" v-model="el.bgHoverColor"></div>
+                                                </div>
+                                                <div v-else style="font-size: 11px; color: #6b7280;">Using defaults from Page Settings</div>
                                             </div>
-                                            <div class="flex-row form-group">
-                                                <div><label>Pt</label><select v-model="el.pt"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
-                                                <div><label>Pb</label><select v-model="el.pb"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
-                                                <div><label>Ps (L)</label><select v-model="el.ps"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
-                                                <div><label>Pe (R)</label><select v-model="el.pe"><option value="">Off</option><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
-                                            </div>
-                                            <div class="flex-row form-group">
-                                                <div><label>Text Color</label><input type="color" v-model="el.textColor"></div>
-                                                <div><label>Bg Normal</label><input type="color" v-model="el.bgColor"></div>
-                                                <div><label>Bg Hover</label><input type="color" v-model="el.bgHoverColor"></div>
+                                            <div class="flex-row form-group" v-if="el.overrideTheme">
+                                                <div><label>Pt</label><select v-model="el.pt"><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                                <div><label>Pb</label><select v-model="el.pb"><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                                <div><label>Ps</label><select v-model="el.ps"><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
+                                                <div><label>Pe</label><select v-model="el.pe"><option v-for="n in spaces" :value="n">{{ n }}</option></select></div>
                                             </div>
                                             <div class="form-group">
                                                 <label>Buttons (Group Gap is 40px)</label>
                                                 <div v-for="(btn, bIdx) in el.buttons" :key="bIdx" class="cta-btn-item">
                                                     <input type="text" v-model="btn.text" placeholder="Button Text" style="flex: 1">
                                                     <input type="text" v-model="btn.href" placeholder="URL or tel:" style="flex: 1">
+                                                    <input type="text" v-model="btn.customClass" placeholder="Custom Class" style="flex: 0.5">
                                                     <button class="danger" @click="el.buttons.splice(bIdx, 1)" title="Remove" style="padding: 8px;">X</button>
                                                 </div>
-                                                <button class="outline" @click="el.buttons.push({text: 'New Button', href: '#'})">+ Add Button</button>
+                                                <button class="outline" @click="el.buttons.push({text: 'New Button', href: '#', customClass: ''})">+ Add Button</button>
                                             </div>
                                         </div>
 
@@ -357,7 +421,16 @@
                     sections: [],
                     customCss: '',
                     customJs: '',
-                    spaces: ['0','1','2','3','4','5','auto']
+                    activeTab: 'theme',
+                    spaces: ['0','1','2','3','4','5','auto'],
+                    theme: {
+                        h1: { fsMobile: 36, fsTablet: 42, fsDesktop: 48, color: '#111827', mb: '3', mt: '0', fontFamily: '' },
+                        h2: { fsMobile: 30, fsTablet: 34, fsDesktop: 38, color: '#111827', mb: '3', mt: '0', fontFamily: '' },
+                        h3: { fsMobile: 24, fsTablet: 26, fsDesktop: 28, color: '#111827', mb: '2', mt: '0', fontFamily: '' },
+                        h4: { fsMobile: 20, fsTablet: 22, fsDesktop: 24, color: '#111827', mb: '2', mt: '0', fontFamily: '' },
+                        h5: { fsMobile: 18, fsTablet: 18, fsDesktop: 20, color: '#111827', mb: '2', mt: '0', fontFamily: '' },
+                        cta: { pt: '2', pb: '2', ps: '4', pe: '4', textColor: '#ffffff', bgColor: '#0d6efd', bgHoverColor: '#0b5ed7', borderRadius: '6', fontFamily: '' }
+                    }
                 }
             },
             mounted() {
@@ -370,6 +443,7 @@
                             this.sections = data.sections || []; 
                             this.customCss = data.customCss || ''; 
                             this.customJs = data.customJs || ''; 
+                            if (data.theme) this.theme = { ...this.theme, ...data.theme };
                         }
                     } catch (e) { console.error("Fail parse", e); }
                 }
@@ -377,7 +451,8 @@
             watch: {
                 sections: { handler() { this.saveData(); }, deep: true },
                 customCss() { this.saveData(); },
-                customJs() { this.saveData(); }
+                customJs() { this.saveData(); },
+                theme: { handler() { this.saveData(); }, deep: true }
             },
             computed: {
                 generatedHtml() {
@@ -499,25 +574,29 @@
                                         if (el.align === 'center') hClasses.push('text-center');
                                         if (el.align === 'right') hClasses.push('text-end');
                                         
-                                        if (el.mt !== undefined && el.mt !== '') hClasses.push(`mt-${el.mt}`);
-                                        if (el.mb !== undefined && el.mb !== '') hClasses.push(`mb-${el.mb}`);
-                                        if (el.pt !== undefined && el.pt !== '') hClasses.push(`pt-${el.pt}`);
-                                        if (el.pb !== undefined && el.pb !== '') hClasses.push(`pb-${el.pb}`);
+                                        const themeSettings = this.theme[el.tag] || this.theme.h2;
+                                        
+                                        if (el.overrideTheme) {
+                                            if (el.mt !== undefined && el.mt !== '') hClasses.push(`mt-${el.mt}`);
+                                            if (el.mb !== undefined && el.mb !== '') hClasses.push(`mb-${el.mb}`);
+                                            if (el.pt !== undefined && el.pt !== '') hClasses.push(`pt-${el.pt}`);
+                                            if (el.pb !== undefined && el.pb !== '') hClasses.push(`pb-${el.pb}`);
 
-                                        let hCss = [];
-                                        if (el.color && el.color !== '#000000') hCss.push(`color: ${el.color};`);
-                                        if (el.fontFamily) hCss.push(`font-family: ${el.fontFamily};`);
-                                        
-                                        if (el.mt === undefined || el.mt === '') hCss.push(`margin-top: 0;`); 
-                                        
-                                        let hasCustomSize = (el.fsMobile && el.fsMobile != 24) || (el.fsTablet && el.fsTablet != 28) || (el.fsDesktop && el.fsDesktop != 32);
-                                        
-                                        if (hCss.length > 0 || hasCustomSize) {
+                                            let hCss = [];
+                                            if (el.color && el.color !== '#000000') hCss.push(`color: ${el.color};`);
+                                            if (el.fontFamily) hCss.push(`font-family: ${el.fontFamily};`);
+                                            
+                                            if (el.mt === undefined || el.mt === '') hCss.push(`margin-top: 0;`); 
+                                            
                                             hClasses.push(clsid);
                                             if (hCss.length > 0) cssRules.push(`.${clsid} { ${hCss.join(' ')} }`);
                                             if (el.fsMobile) cssRules.push(`.${clsid} { font-size: ${el.fsMobile}px; }`);
                                             if (el.fsTablet) cssRules.push(`@media (min-width: 768px) { .${clsid} { font-size: ${el.fsTablet}px; } }`);
                                             if (el.fsDesktop) cssRules.push(`@media (min-width: 992px) { .${clsid} { font-size: ${el.fsDesktop}px; } }`);
+                                        } else {
+                                            // Use Theme Classes/Settings
+                                            if (themeSettings.mt !== undefined && themeSettings.mt !== '') hClasses.push(`mt-${themeSettings.mt}`);
+                                            if (themeSettings.mb !== undefined && themeSettings.mb !== '') hClasses.push(`mb-${themeSettings.mb}`);
                                         }
                                         
                                         let hClsStr = hClasses.length > 0 ? ` class="${hClasses.join(' ')}"` : '';
@@ -556,45 +635,56 @@
                                         finalHtml += `          <img class="figure-img img-fluid${imgAlignClass}" src="${el.src || '#'}" alt="${el.alt || 'Image'}" loading="lazy">\n`;
                                         finalHtml += `        </figure>\n`;
                                         if (el.align === 'right') finalHtml += `        <div class="clearfix"></div>\n`;
-                                    } 
-                                    else if (el.type === 'cta') {
+                                                               else if (el.type === 'cta') {
                                         let cClasses = [clsid];
                                         if (el.mt !== undefined && el.mt !== '') cClasses.push(`mt-${el.mt}`);
                                         if (el.mb !== undefined && el.mb !== '') cClasses.push(`mb-${el.mb}`);
-                                        if (el.ms !== undefined && el.ms !== '') cClasses.push(`ms-${el.ms}`);
-                                        if (el.me !== undefined && el.me !== '') cClasses.push(`me-${el.me}`);
                                         
-                                        let jContent = el.align === 'center' ? 'center' : el.align === 'right' ? 'flex-end' : 'flex-start';
-                                        
-                                        let btnCss = [];
-                                        let btnClasses = [];
-                                        if (el.pt !== undefined && el.pt !== '') btnClasses.push(`pt-${el.pt}`);
-                                        if (el.pb !== undefined && el.pb !== '') btnClasses.push(`pb-${el.pb}`);
-                                        if (el.ps !== undefined && el.ps !== '') btnClasses.push(`ps-${el.ps}`);
-                                        if (el.pe !== undefined && el.pe !== '') btnClasses.push(`pe-${el.pe}`);
-                                        
-                                        if (el.textColor && el.textColor.toLowerCase() !== '#ffffff') btnCss.push(`color: ${el.textColor};`);
-                                        if (el.bgColor && el.bgColor.toLowerCase() !== '#0d6efd') btnCss.push(`background-color: ${el.bgColor};`);
+                                        if (!el.overrideTheme) {
+                                            if (this.theme.cta.mt) cClasses.push(`mt-${this.theme.cta.mt}`);
+                                            if (this.theme.cta.mb) cClasses.push(`mb-${this.theme.cta.mb}`);
+                                        }
 
-                                        let defaultBtn = (el.textColor.toLowerCase() === '#ffffff' && el.bgColor.toLowerCase() === '#0d6efd' && btnCss.length === 0);
-                                        
+                                        let jContent = el.align === 'center' ? 'center' : el.align === 'right' ? 'flex-end' : 'flex-start';
                                         cssRules.push(`.${clsid} { display: flex; flex-wrap: wrap; gap: 40px; justify-content: ${jContent}; }`);
                                         
-                                        let finalBtnClasses = defaultBtn ? 'btn btn-primary' : `${clsid}-btn btn`;
-                                        if (btnClasses.length > 0) finalBtnClasses += ' ' + btnClasses.join(' ');
-                                        if (!defaultBtn) {
+                                        let finalBtnClasses = '';
+                                        if (el.overrideTheme) {
+                                            let btnCss = [];
+                                            let btnClasses = [];
+                                            if (el.pt !== undefined && el.pt !== '') btnClasses.push(`pt-${el.pt}`);
+                                            if (el.pb !== undefined && el.pb !== '') btnClasses.push(`pb-${el.pb}`);
+                                            if (el.ps !== undefined && el.ps !== '') btnClasses.push(`ps-${el.ps}`);
+                                            if (el.pe !== undefined && el.pe !== '') btnClasses.push(`pe-${el.pe}`);
+                                            
+                                            if (el.textColor) btnCss.push(`color: ${el.textColor};`);
+                                            if (el.bgColor) btnCss.push(`background-color: ${el.bgColor};`);
+
+                                            finalBtnClasses = `${clsid}-btn btn`;
+                                            if (btnClasses.length > 0) finalBtnClasses += ' ' + btnClasses.join(' ');
+                                            
                                             cssRules.push(`.${clsid}-btn { ${btnCss.join(' ')} text-decoration: none; border-radius: 6px; font-weight: bold; transition: all 0.3s; display: inline-block; }`);
                                             cssRules.push(`.${clsid}-btn:hover { background-color: ${el.bgHoverColor||'#0b5ed7'}; color: ${el.textColor||'#fff'}; }`);
+                                        } else {
+                                            finalBtnClasses = 'btn btn-theme';
+                                            const tc = this.theme.cta;
+                                            if (tc.pt) finalBtnClasses += ` pt-${tc.pt}`;
+                                            if (tc.pb) finalBtnClasses += ` pb-${tc.pb}`;
+                                            if (tc.ps) finalBtnClasses += ` ps-${tc.ps}`;
+                                            if (tc.pe) finalBtnClasses += ` pe-${tc.pe}`;
                                         }
                                         
                                         finalHtml += `        <div class="cta-group ${cClasses.join(' ')}">\n`;
                                         el.buttons.forEach(b => {
                                             if (b.text && b.href) {
-                                                finalHtml += `          <a href="${b.href}" class="${finalBtnClasses}">${b.text}</a>\n`;
+                                                let btnClasses = finalBtnClasses;
+                                                if (b.customClass) btnClasses += ' ' + b.customClass;
+                                                finalHtml += `          <a href="${b.href}" class="${btnClasses}">${b.text}</a>\n`;
                                             }
                                         });
                                         finalHtml += `        </div>\n`;
                                     } 
+         } 
                                     else if (el.type === 'faq') {
                                         faqFound = true;
                                         
@@ -650,6 +740,23 @@
                     if (faqFound) {
                         finalCss += `/* FAQ Component Styles */\n.faq-details { border: none; margin-bottom: 1.5rem; }\n.faq-summary { background: #fff; padding: 1.25rem 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); font-weight: 700; cursor: pointer; list-style: none; transition: all 0.2s ease; position: relative; }\n.faq-summary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }\n.faq-details[open] .faq-summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }\n.faq-content { background: #fff; padding: 1rem 1.5rem 1.5rem; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; box-shadow: 0 10px 12px -5px rgba(0,0,0,0.05); }\n\n`;
                     }
+
+                    // Add Theme Styles
+                    finalCss += `/* Global Theme Styles */\n`;
+                    ['h1', 'h2', 'h3', 'h4', 'h5'].forEach(tag => {
+                        const t = this.theme[tag];
+                        let tCss = [`color: ${t.color};`, `margin-top: 0;`, `font-size: ${t.fsMobile}px;`];
+                        if (t.fontFamily) tCss.push(`font-family: ${t.fontFamily};`);
+                        finalCss += `${tag} { ${tCss.join(' ')} }\n`;
+                        finalCss += `@media (min-width: 768px) { ${tag} { font-size: ${t.fsTablet}px; } }\n`;
+                        finalCss += `@media (min-width: 992px) { ${tag} { font-size: ${t.fsDesktop}px; } }\n`;
+                    });
+                    
+                    const tc = this.theme.cta;
+                    let ctaCss = [`color: ${tc.textColor} !important;`, `background-color: ${tc.bgColor} !important;`, `border-radius: ${tc.borderRadius}px !important;`, `font-weight: bold;`, `transition: all 0.3s;`, `display: inline-block;`, `text-decoration: none;`];
+                    if (tc.fontFamily) ctaCss.push(`font-family: ${tc.fontFamily};`);
+                    finalCss += `.btn-theme { ${ctaCss.join(' ')} }\n`;
+                    finalCss += `.btn-theme:hover { background-color: ${tc.bgHoverColor} !important; color: ${tc.textColor} !important; opacity: 0.9; }\n\n`;
                     
                     finalCss += "/* Auto-Generated Styles */\n";
                     finalCss += cssRules.join("\n");
@@ -680,10 +787,10 @@
                     if (!type) type = 'heading';
                     const el = { id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5), type };
 
-                    if (type === 'heading') { el.text = ''; el.tag = 'h2'; el.pt = ''; el.pb = ''; el.mt = ''; el.mb = ''; el.align = 'center'; el.color = '#000000'; el.fontFamily = ''; el.fsMobile = 24; el.fsTablet = 28; el.fsDesktop = 32; }
+                    if (type === 'heading') { el.text = ''; el.tag = 'h2'; el.overrideTheme = false; el.pt = ''; el.pb = ''; el.mt = ''; el.mb = ''; el.align = 'center'; el.color = '#111827'; el.fontFamily = ''; el.fsMobile = 24; el.fsTablet = 28; el.fsDesktop = 32; }
                     if (type === 'p') { el.text = ''; el.showRawHtml = false; el.isCenterAlign = false; el.pt = ''; el.pb = ''; el.mt = ''; el.mb = ''; }
                     if (type === 'img') { el.src = ''; el.alt = ''; el.align = 'center'; el.pt = ''; el.pb = ''; el.ps = ''; el.pe = ''; el.mt = ''; el.mb = ''; el.ms = ''; el.me = ''; }
-                    if (type === 'cta') { el.buttons = [{text: 'Click Here', href: '#'}]; el.align = 'center'; el.pt = ''; el.pb = ''; el.ps = ''; el.pe = ''; el.mt = ''; el.mb = ''; el.ms = ''; el.me = ''; el.textColor = '#ffffff'; el.bgColor = '#0d6efd'; el.bgHoverColor = '#0b5ed7'; }
+                    if (type === 'cta') { el.buttons = [{text: 'Click Here', href: '#', customClass: ''}]; el.overrideTheme = false; el.align = 'center'; el.pt = ''; el.pb = ''; el.ps = ''; el.pe = ''; el.mt = ''; el.mb = ''; el.ms = ''; el.me = ''; el.textColor = '#ffffff'; el.bgColor = '#0d6efd'; el.bgHoverColor = '#0b5ed7'; }
                     if (type === 'faq') { el.fsMobile = 18; el.fsTablet = 20; el.fsDesktop = 24; el.faqs = [ { q: '', a: '', showRawHtml: false }, { q: '', a: '', showRawHtml: false }, { q: '', a: '', showRawHtml: false } ]; }
 
                     column.elements.push(el);
@@ -692,6 +799,33 @@
                 removeRow(sec, idx) { sec.rows.splice(idx, 1); },
                 removeColumn(row, idx) { row.columns.splice(idx, 1); },
                 removeElement(col, idx) { col.elements.splice(idx, 1); },
+                duplicateSection(idx) {
+                    const section = JSON.parse(JSON.stringify(this.sections[idx]));
+                    // Regenerate IDs to avoid collisions
+                    section.id = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+                    section.rows.forEach(row => {
+                        row.id = Date.now() + Math.random();
+                        row.columns.forEach(col => {
+                            col.id = Date.now() + Math.random();
+                            col.elements.forEach(el => {
+                                el.id = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+                            });
+                        });
+                    });
+                    this.sections.splice(idx + 1, 0, section);
+                },
+                duplicateRow(sec, idx) {
+                    const row = JSON.parse(JSON.stringify(sec.rows[idx]));
+                    // Regenerate IDs
+                    row.id = Date.now() + Math.random();
+                    row.columns.forEach(col => {
+                        col.id = Date.now() + Math.random();
+                        col.elements.forEach(el => {
+                            el.id = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+                        });
+                    });
+                    sec.rows.splice(idx + 1, 0, row);
+                },
                 moveSection(idx, dir) {
                     if (idx + dir >= 0 && idx + dir < this.sections.length) {
                         const item = this.sections.splice(idx, 1)[0];
@@ -719,7 +853,7 @@
                     }
                 },
                 clearAll() { if (confirm("Clear everything?")) { this.sections = []; this.customCss = ''; this.customJs = ''; } },
-                saveData() { localStorage.setItem('htmlBuilderGeneralState', JSON.stringify({ sections: this.sections, customCss: this.customCss, customJs: this.customJs })); },
+                saveData() { localStorage.setItem('htmlBuilderGeneralState', JSON.stringify({ sections: this.sections, customCss: this.customCss, customJs: this.customJs, theme: this.theme })); },
                 copyToClipboard() {
                     if (this.sections.length === 0) return;
                     navigator.clipboard.writeText(this.generatedHtml).then(() => alert("Copied!")).catch(err => alert("Copying failed!"));
