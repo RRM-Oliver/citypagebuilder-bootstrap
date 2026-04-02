@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Page Builder (General)</title>
+    <!-- Use Vue 3 from CDN for interactivity without a build step -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Quill library for Rich Text Editing -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 20px; background: #f3f4f6; color: #1f2937; }
+        .container { display: flex; gap: 20px; max-width: 1600px; margin: 0 auto; height: calc(100vh - 40px); }
+        .builder { flex: 1; overflow-y: auto; padding-right: 15px; }
+        .output { flex: 1; display: flex; flex-direction: column; }
+        .output textarea { flex: 1; font-family: Consolas, Monaco, monospace; padding: 15px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; line-height: 1.5; white-space: pre; background: #ffffff; color: #333333; resize: none; }
+        button { background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+        button:hover { background: #2563eb; }
+        button.danger { background: #ef4444; }
+        button.danger:hover { background: #dc2626; }
+        button.outline { background: transparent; border: 1px solid #3b82f6; color: #3b82f6; }
+        button.outline:hover { background: #eff6ff; }
+        select, input[type="text"], input[type="number"], input[type="color"] { padding: 8px; border-radius: 4px; border: 1px solid #d1d5db; background: white; font-size: 14px; }
+        .section { background: white; border-radius: 8px; padding: 20px; border: 1px solid #e5e7eb; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+        .row-ct { background: #f9fafb; border: 1px solid #d1d5db; border-radius: 6px; padding: 15px; margin-top: 15px; }
+        .cols-container { display: flex; gap: 15px; margin-top: 15px; overflow-x: auto; }
+        .col-box { flex: 1; background: white; border: 1px dashed #9ca3af; border-radius: 6px; padding: 15px; min-width: 320px; }
+        .element { background: #f3f4f6; padding: 15px; border-radius: 6px; margin-top: 10px; position: relative; border: 1px solid #e5e7eb; }
+        .form-group { margin-bottom: 12px; }
+        .form-group:last-child { margin-bottom: 0; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #4b5563; text-transform: uppercase; letter-spacing: 0.05em; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; }
+        .form-group textarea { resize: vertical; min-height: 80px; padding: 10px; border: 1px solid #d1d5db; border-radius: 4px; font-family: inherit; }
+        .flex-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .flex-row > div { flex: 1; min-width: 120px; }
+        .faq-item { background: white; padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #e5e7eb; }
+        .cta-btn-item { background: white; padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px dashed #9ca3af; display: flex; gap: 10px; align-items: center; }
+        .header-actions { display: flex; justify-content: space-between; align-items: center; }
+        h1, h2, h3, h4 { margin-top: 0; color: #111827; }
+        .add-element-group { display: flex; gap: 10px; margin-top: 20px; align-items: center; padding-top: 15px; border-top: 1px solid #e5e7eb; }
+        .type-badge { background: #e0e7ff; color: #4338ca; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: move; }
+        .empty-state { text-align: center; padding: 40px; color: #6b7280; background: white; border-radius: 8px; border: 2px dashed #d1d5db; }
+        /* Layout Grid System defaults for output */
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="builder">
+                <div class="header-actions" style="margin-bottom: 20px;">
+                    <h2>City Page Builder (General)</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="danger" @click="clearAll" v-if="sections.length > 0">Clear All</button>
+                        <button @click="addSection">+ Add Section</button>
+                    </div>
+                </div>
+
+                <div v-if="sections.length === 0" class="empty-state">
+                    <h3>No sections added yet!</h3>
+                    <p>Click the "Add Section" button to start building your layout.</p>
+                </div>
+
+                <div class="section" style="border-left: 4px solid #3b82f6;">
+                    <h3>Page Settings (Custom Code)</h3>
+                    <div class="form-group">
+                        <label>Custom CSS (appended at end of auto-generated CSS)</label>
+                        <textarea v-model="customCss" placeholder=".my-class { color: red; }"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Custom JS</label>
+                        <textarea v-model="customJs" placeholder="console.log('Hello World');"></textarea>
+                    </div>
+                </div>
+
+                <div v-for="(sec, sIdx) in sections" :key="sec.id" class="section">
+                    <div class="header-actions" style="margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <h3 style="margin: 0;">Section {{ sIdx + 1 }}</h3>
+                            <button class="outline" @click="moveSection(sIdx, -1)" :disabled="sIdx === 0" style="padding: 2px 6px; font-size: 11px;">↑</button>
+                            <button class="outline" @click="moveSection(sIdx, 1)" :disabled="sIdx === sections.length - 1" style="padding: 2px 6px; font-size: 11px;">↓</button>
+                        </div>
+                        <button class="danger" @click="removeSection(sIdx)">Remove</button>
+                    </div>
+                    <div class="flex-row" style="margin-bottom: 10px; background: #f9fafb; padding: 10px; border-radius: 4px;">
+                        <div><label>Padding Top (px)</label><input type="number" v-model="sec.paddingTop"></div>
+                        <div><label>Padding Bottom (px)</label><input type="number" v-model="sec.paddingBottom"></div>
+                        <div><label>Background Color</label><input type="color" v-model="sec.bgColor" style="height: 36px; padding: 0;"></div>
+                    </div>
+
+                    <button class="outline" @click="addRow(sec)" style="margin-top: 10px;">+ Add Row</button>
+
+                    <div v-for="(row, rIdx) in sec.rows" :key="row.id" class="row-ct">
+                        <div class="header-actions">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <h4 style="margin: 0;">Row {{ rIdx + 1 }}</h4>
+                                <button class="outline" @click="moveRow(sec, rIdx, -1)" :disabled="rIdx === 0" style="padding: 2px 6px; font-size: 11px;">↑</button>
+                                <button class="outline" @click="moveRow(sec, rIdx, 1)" :disabled="rIdx === sec.rows.length - 1" style="padding: 2px 6px; font-size: 11px;">↓</button>
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <label style="font-size: 13px; cursor: pointer;"><input type="checkbox" v-model="row.centerAlign"> Center Content Align</label>
+                                <button class="outline" v-if="row.columns.length < 2" @click="addColumn(row)">+ Add Col</button>
+                                <button class="danger" @click="removeRow(sec, rIdx)">Del Row</button>
+                            </div>
+                        </div>
+
+                        <div class="cols-container">
+                            <div v-for="(col, cIdx) in row.columns" :key="col.id" class="col-box">
+                                <div class="header-actions">
+                                    <h4>Column {{ cIdx + 1 }}</h4>
+                                    <button class="danger" @click="removeColumn(row, cIdx)">X</button>
+                                </div>
+
+                                <div class="elements">
+                                    <div v-for="(el, eIdx) in col.elements" :key="el.id" class="element">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center;">
+                                            <span class="type-badge">{{ el.type.toUpperCase() }}</span>
+                                            <div style="display: flex; gap: 5px;">
+                                                <button class="outline" style="padding: 4px 8px; font-size: 12px;" @click="moveElementUp(col, eIdx)" :disabled="eIdx === 0">↑</button>
+                                                <button class="outline" style="padding: 4px 8px; font-size: 12px;" @click="moveElementDown(col, eIdx)" :disabled="eIdx === col.elements.length - 1">↓</button>
+                                                <button class="danger" style="padding: 4px 8px; font-size: 12px;" @click="removeElement(col, eIdx)">Delete</button>
+                                            </div>
+                                        </div>
+
+                                        <!-- HEADING ELEMENT -->
+                                        <div v-if="el.type === 'heading'">
+                                            <div class="form-group">
+                                                <label>Heading Text</label>
+                                                <input type="text" v-model="el.text" placeholder="Enter heading...">
+                                            </div>
+                                            <div class="flex-row form-group">
+                                                <div><label>HTML Tag</label>
+                                                    <select v-model="el.tag">
+                                                        <option value="h1">H1</option>
+                                                        <option value="h2">H2</option>
+                                                        <option value="h3">H3</option>
+                                                        <option value="h4">H4</option>
+                                                        <option value="h5">H5</option>
+                                                    </select>
+                                                </div>
+                                                <div><label>Align</label>
+                                                    <select v-model="el.align">
+                                                        <option value="left">Left</option>
+                                                        <option value="center">Center</option>
+                                                        <option value="right">Right</option>
+                                                    </select>
+                                                </div>
+                                                <div><label>Text Color</label><input type="color" v-model="el.color"></div>
+                                            </div>
+                                            <div class="flex-row form-group">
+                                                <div><label>Pad Top (px)</label><input type="number" v-model="el.paddingTop"></div>
+                                                <div><label>Pad Bot (px)</label><input type="number" v-model="el.paddingBottom"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- PARAGRAPH / RICH TEXT -->
+                                        <div v-if="el.type === 'p'" class="form-group">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                                <label style="margin-bottom: 0;">Rich Text / HTML</label>
+                                                <button class="outline" style="padding: 4px 8px; font-size: 11px;" @click="el.showRawHtml = !el.showRawHtml">Toggle {{ el.showRawHtml ? 'Rich Text' : 'Raw HTML' }}</button>
+                                            </div>
+                                            <div v-if="el.showRawHtml">
+                                                <textarea v-model="el.text" placeholder="<p>Text...</p>"></textarea>
+                                            </div>
+                                            <div v-else style="background: white; color: black; border-radius: 4px;">
+                                                <rich-text-editor v-model="el.text"></rich-text-editor>
+                                            </div>
+                                            <div style="margin-top: 8px;">
+                                                <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer; text-transform: none; font-weight: normal; font-size: 13px; color: #4b5563;">
+                                                    <input type="checkbox" v-model="el.isCenterAlign" style="width: auto;"> Center Align Text (default left)
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <!-- IMAGE ELEMENT -->
+                                        <div v-if="el.type === 'img'">
+                                            <div class="form-group">
+                                                <label>Image Source URL</label>
+                                                <input type="text" v-model="el.src" placeholder="https://example.com/img.jpg">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Image ALT Phrase</label>
+                                                <input type="text" v-model="el.alt" placeholder="Alt text">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Align</label>
+                                                <select v-model="el.align">
+                                                    <option value="left">Left</option>
+                                                    <option value="center">Center</option>
+                                                    <option value="right">Right</option>
+                                                </select>
+                                            </div>
+                                            <div class="flex-row form-group">
+                                                <div><label>Margin Top</label><input type="number" v-model="el.marginTop"></div>
+                                                <div><label>Margin Bot</label><input type="number" v-model="el.marginBottom"></div>
+                                                <div><label>Margin Lft</label><input type="number" v-model="el.marginLeft"></div>
+                                                <div><label>Margin Rgt</label><input type="number" v-model="el.marginRight"></div>
+                                            </div>
+                                            <div class="flex-row form-group">
+                                                <div><label>Pad Top</label><input type="number" v-model="el.paddingTop"></div>
+                                                <div><label>Pad Bot</label><input type="number" v-model="el.paddingBottom"></div>
+                                                <div><label>Pad Lft</label><input type="number" v-model="el.paddingLeft"></div>
+                                                <div><label>Pad Rgt</label><input type="number" v-model="el.paddingRight"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- CTA ELEMENT -->
+                                        <div v-if="el.type === 'cta'">
+                                            <div class="form-group">
+                                                <label>Alignment</label>
+                                                <select v-model="el.align">
+                                                    <option value="left">Left</option>
+                                                    <option value="center">Center</option>
+                                                    <option value="right">Right</option>
+                                                </select>
+                                            </div>
+                                            <div class="flex-row form-group">
+                                                <div><label>Margin Top</label><input type="number" v-model="el.marginTop"></div>
+                                                <div><label>Margin Bot</label><input type="number" v-model="el.marginBottom"></div>
+                                                <div><label>Margin Lft</label><input type="number" v-model="el.marginLeft"></div>
+                                                <div><label>Margin Rgt</label><input type="number" v-model="el.marginRight"></div>
+                                            </div>
+                                            <div class="flex-row form-group">
+                                                <div><label>Padding Top</label><input type="number" v-model="el.paddingTop"></div>
+                                                <div><label>Padding Bot</label><input type="number" v-model="el.paddingBottom"></div>
+                                                <div><label>Padding Lft</label><input type="number" v-model="el.paddingLeft"></div>
+                                                <div><label>Padding Rgt</label><input type="number" v-model="el.paddingRight"></div>
+                                            </div>
+                                            <div class="flex-row form-group">
+                                                <div><label>Text Color</label><input type="color" v-model="el.textColor"></div>
+                                                <div><label>Bg Normal</label><input type="color" v-model="el.bgColor"></div>
+                                                <div><label>Bg Hover</label><input type="color" v-model="el.bgHoverColor"></div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Buttons (Group Gap is 40px)</label>
+                                                <div v-for="(btn, bIdx) in el.buttons" :key="bIdx" class="cta-btn-item">
+                                                    <input type="text" v-model="btn.text" placeholder="Button Text" style="flex: 1">
+                                                    <input type="text" v-model="btn.href" placeholder="URL or tel:" style="flex: 1">
+                                                    <button class="danger" @click="el.buttons.splice(bIdx, 1)" title="Remove" style="padding: 8px;">X</button>
+                                                </div>
+                                                <button class="outline" @click="el.buttons.push({text: 'New Button', href: '#'})">+ Add Button</button>
+                                            </div>
+                                        </div>
+
+                                        <!-- FAQ ELEMENT -->
+                                        <div v-if="el.type === 'faq'">
+                                            <div class="flex-row form-group">
+                                                <div><label>Title Size Mobile (<767)</label><input type="number" v-model="el.fsMobile"></div>
+                                                <div><label>Title Size Tablet (768-991)</label><input type="number" v-model="el.fsTablet"></div>
+                                                <div><label>Title Size Desktop (>992)</label><input type="number" v-model="el.fsDesktop"></div>
+                                            </div>
+                                            <div v-for="(faq, fIdx) in el.faqs" :key="fIdx" class="faq-item">
+                                                <div class="form-group">
+                                                    <label>Question {{ fIdx + 1 }}</label>
+                                                    <input type="text" v-model="faq.q" placeholder="What is...">
+                                                </div>
+                                                <div class="form-group">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                                        <label style="margin-bottom: 0;">Answer {{ fIdx + 1 }}</label>
+                                                        <button class="outline" style="padding: 4px 8px; font-size: 11px;" @click="faq.showRawHtml = !faq.showRawHtml">Toggle Editor</button>
+                                                    </div>
+                                                    <div v-if="faq.showRawHtml">
+                                                        <textarea v-model="faq.a" rows="2"></textarea>
+                                                    </div>
+                                                    <div v-else style="background: white; color: black; border-radius: 4px;">
+                                                        <rich-text-editor v-model="faq.a"></rich-text-editor>
+                                                    </div>
+                                                    <button class="danger" @click="el.faqs.splice(fIdx, 1)" style="margin-top: 10px; font-size: 11px; padding: 4px 8px;">Remove Question</button>
+                                                </div>
+                                            </div>
+                                            <button class="outline" @click="el.faqs.push({q: '', a: '', showRawHtml: false})">+ Add Question</button>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <div class="add-element-group">
+                                    <select v-model="col.selectedType">
+                                        <option value="heading">Heading (H1-H5)</option>
+                                        <option value="p">Rich Text / HTML</option>
+                                        <option value="img">Image</option>
+                                        <option value="cta">CTA Buttons</option>
+                                        <option value="faq">FAQ Accordion</option>
+                                    </select>
+                                    <button @click="addElement(col, col.selectedType)">+ Add Element</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Code Output Column -->
+            <div class="output">
+                <div class="header-actions" style="margin-bottom: 20px;">
+                    <h2>Generated HTML</h2>
+                    <button @click="copyToClipboard" class="outline">Copy to Clipboard</button>
+                </div>
+                <textarea readonly :value="generatedHtml"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        const RichTextEditor = {
+            props: ['modelValue'],
+            template: `
+    <div class="rich-text-wrapper">
+      <div ref="editor" class="quill-editor"></div>
+    </div>
+  `,
+            mounted() {
+                this.quill = new Quill(this.$refs.editor, {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [ ['bold', 'italic', 'underline'], [{'list': 'ordered'}, {'list': 'bullet'}], ['link', 'clean'] ]
+                    }
+                });
+                this.quill.root.innerHTML = this.modelValue || '';
+                this.quill.on('text-change', () => { this.$emit('update:modelValue', this.quill.root.innerHTML); });
+            },
+            watch: {
+                modelValue(newVal) {
+                    if (newVal !== this.quill.root.innerHTML) { this.quill.root.innerHTML = newVal || ''; }
+                }
+            }
+        };
+
+        const app = createApp({
+            components: { 'rich-text-editor': RichTextEditor },
+            data() {
+                return {
+                    sections: [],
+                    customCss: '',
+                    customJs: ''
+                }
+            },
+            mounted() {
+                const saved = localStorage.getItem('htmlBuilderGeneralState');
+                if (saved) {
+                    try {
+                        const data = JSON.parse(saved);
+                        if (Array.isArray(data)) this.sections = data;
+                        else { this.sections = data.sections || []; this.customCss = data.customCss || ''; this.customJs = data.customJs || ''; }
+                    } catch (e) { console.error("Fail parse", e); }
+                }
+            },
+            watch: {
+                sections: { handler() { this.saveData(); }, deep: true },
+                customCss() { this.saveData(); },
+                customJs() { this.saveData(); }
+            },
+            computed: {
+                generatedHtml() {
+                    if (this.sections.length === 0) return '<!-- Your generated HTML will appear here -->';
+
+                    let finalHtml = '';
+                    let cssRules = [];
+                    let faqFound = false;
+
+                    this.sections.forEach((sec, sIdx) => {
+                        let secId = 'section-' + (sIdx + 1) + '-' + sec.id.substring(0,5);
+                        cssRules.push(`#${secId} { padding-top: ${sec.paddingTop || 0}px; padding-bottom: ${sec.paddingBottom || 0}px; background-color: ${sec.bgColor || '#ffffff'}; }`);
+                        
+                        finalHtml += `<section id="${secId}">\n`;
+                        finalHtml += `  <div class="container">\n`;
+
+                        sec.rows.forEach(row => {
+                            let isTwoCols = row.columns.length === 2;
+                            let rowAlign = row.centerAlign ? ' text-center justify-content-center' : '';
+                            finalHtml += `    <div class="row${rowAlign}">\n`;
+
+                            row.columns.forEach((col) => {
+                                finalHtml += isTwoCols ? `      <div class="col-lg-6">\n` : `      <div class="col-12">\n`;
+
+                                col.elements.forEach((el) => {
+                                    let clsid = 'el-' + el.id;
+                                    
+                                    if (el.type === 'heading') {
+                                        cssRules.push(`.${clsid} { padding-top: ${el.paddingTop || 0}px; padding-bottom: ${el.paddingBottom || 0}px; color: ${el.color || '#000'}; text-align: ${el.align}; margin-top: 0; }`);
+                                        finalHtml += `        <${el.tag} class="${clsid}">${el.text || 'Heading text'}</${el.tag}>\n`;
+                                    } 
+                                    else if (el.type === 'p') {
+                                        let alignClass = el.isCenterAlign ? ' text-center' : '';
+                                        finalHtml += `        <div class="lead${alignClass}">\n          ${el.text || '<p>Paragraph text...</p>'}\n        </div>\n`;
+                                    } 
+                                    else if (el.type === 'img') {
+                                        cssRules.push(`.${clsid}-fig { margin: ${el.marginTop||0}px ${el.marginRight||0}px ${el.marginBottom||0}px ${el.marginLeft||0}px; padding: ${el.paddingTop||0}px ${el.paddingRight||0}px ${el.paddingBottom||0}px ${el.paddingLeft||0}px; text-align: ${el.align}; width: 100%; }`);
+                                        let imgAlignClass = el.align === 'center' ? ' mx-auto d-block' : el.align === 'right' ? ' float-end' : '';
+                                        finalHtml += `        <figure class="figure ${clsid}-fig">\n`;
+                                        finalHtml += `          <img class="figure-img img-fluid${imgAlignClass}" src="${el.src || '#'}" alt="${el.alt || 'Image'}" loading="lazy">\n`;
+                                        finalHtml += `        </figure>\n`;
+                                        if (el.align === 'right') finalHtml += `        <div style="clear: both;"></div>\n`;
+                                    } 
+                                    else if (el.type === 'cta') {
+                                        cssRules.push(`.${clsid} { margin: ${el.marginTop||0}px ${el.marginRight||0}px ${el.marginBottom||0}px ${el.marginLeft||0}px; display: flex; flex-wrap: wrap; gap: 40px; justify-content: ${el.align==='center'?'center':el.align==='right'?'flex-end':'flex-start'}; }`);
+                                        cssRules.push(`.${clsid}-btn { padding: ${el.paddingTop||0}px ${el.paddingRight||0}px ${el.paddingBottom||0}px ${el.paddingLeft||0}px; color: ${el.textColor||'#fff'}; background-color: ${el.bgColor||'#0d6efd'}; text-decoration: none; border-radius: 6px; font-weight: bold; transition: all 0.3s; display: inline-block; }`);
+                                        cssRules.push(`.${clsid}-btn:hover { background-color: ${el.bgHoverColor||'#0b5ed7'}; color: ${el.textColor||'#fff'}; }`);
+                                        
+                                        finalHtml += `        <div class="cta-group ${clsid}">\n`;
+                                        el.buttons.forEach(b => {
+                                            if (b.text && b.href) {
+                                                finalHtml += `          <a href="${b.href}" class="${clsid}-btn btn">${b.text}</a>\n`;
+                                            }
+                                        });
+                                        finalHtml += `        </div>\n`;
+                                    } 
+                                    else if (el.type === 'faq') {
+                                        faqFound = true;
+                                        cssRules.push(`.${clsid}-summary h3 { font-size: ${el.fsMobile||18}px; margin: 0; }`);
+                                        cssRules.push(`@media (min-width: 768px) { .${clsid}-summary h3 { font-size: ${el.fsTablet||20}px; } }`);
+                                        cssRules.push(`@media (min-width: 992px) { .${clsid}-summary h3 { font-size: ${el.fsDesktop||24}px; } }`);
+                                        
+                                        finalHtml += `        <div class="faq-container my-4">\n`;
+                                        el.faqs.forEach((faq) => {
+                                            if (faq.q) {
+                                                finalHtml += `          <details class="faq-details">\n`;
+                                                finalHtml += `            <summary class="faq-summary ${clsid}-summary"><h3>${faq.q}</h3></summary>\n`;
+                                                finalHtml += `            <div class="faq-content">\n`;
+                                                finalHtml += `              ${faq.a}\n`;
+                                                finalHtml += `            </div>\n`;
+                                                finalHtml += `          </details>\n`;
+                                            }
+                                        });
+                                        finalHtml += `        </div>\n`;
+                                    }
+                                });
+
+                                finalHtml += `      </div>\n`;
+                            });
+
+                            finalHtml += `    </div>\n`;
+                        });
+
+                        finalHtml += `  </div>\n`;
+                        finalHtml += `</section>\n\n`;
+                    });
+
+                    // Build Output CSS Block
+                    let finalCss = "<style>\n";
+                    
+                    if (faqFound) {
+                        finalCss += `/* FAQ Component Styles */\n.faq-details { border: none; margin-bottom: 1.5rem; }\n.faq-summary { background: #fff; padding: 1.25rem 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); font-weight: 700; cursor: pointer; list-style: none; transition: all 0.2s ease; position: relative; }\n.faq-summary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }\n.faq-details[open] .faq-summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }\n.faq-content { background: #fff; padding: 1rem 1.5rem 1.5rem; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; box-shadow: 0 10px 12px -5px rgba(0,0,0,0.05); }\n\n`;
+                    }
+                    
+                    finalCss += "/* Auto-Generated Styles */\n";
+                    finalCss += cssRules.join("\n");
+                    finalCss += "\n\n/* Custom User CSS */\n";
+                    finalCss += (this.customCss || '') + "\n";
+                    finalCss += "</style>\n\n";
+
+                    // Append JS if present
+                    let finalJs = '';
+                    if (this.customJs) {
+                        finalJs = `\n<script>\n${this.customJs}\n<\/script>\n`;
+                    }
+
+                    return finalCss + finalHtml + finalJs;
+                }
+            },
+            methods: {
+                addSection() {
+                    const idstr = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+                    this.sections.push({ id: idstr, bg: '#ffffff', paddingTop: 60, paddingBottom: 60, rows: [ { id: Date.now() + 1, columns: [], centerAlign: false } ] });
+                },
+                addRow(section) { section.rows.push({ id: Date.now(), columns: [], centerAlign: false }); },
+                addColumn(row) {
+                    if (row.columns.length < 2) row.columns.push({ id: Date.now(), elements: [], selectedType: 'heading' });
+                    else alert("Maximum 2 columns");
+                },
+                addElement(column, type) {
+                    if (!type) type = 'heading';
+                    const el = { id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5), type };
+
+                    if (type === 'heading') { el.text = ''; el.tag = 'h2'; el.paddingTop = 0; el.paddingBottom = 0; el.align = 'center'; el.color = '#000000'; }
+                    if (type === 'p') { el.text = ''; el.showRawHtml = false; el.isCenterAlign = false; }
+                    if (type === 'img') { el.src = ''; el.alt = ''; el.align = 'center'; el.marginTop = 0; el.marginBottom = 0; el.marginLeft = 0; el.marginRight = 0; el.paddingTop = 0; el.paddingBottom = 0; el.paddingLeft = 0; el.paddingRight = 0; }
+                    if (type === 'cta') { el.buttons = [{text: 'Click Here', href: '#'}]; el.align = 'center'; el.marginTop = 0; el.marginBottom = 0; el.marginLeft = 0; el.marginRight = 0; el.paddingTop = 10; el.paddingBottom = 10; el.paddingLeft = 20; el.paddingRight = 20; el.textColor = '#ffffff'; el.bgColor = '#0d6efd'; el.bgHoverColor = '#0b5ed7'; }
+                    if (type === 'faq') { el.fsMobile = 18; el.fsTablet = 20; el.fsDesktop = 24; el.faqs = [ { q: '', a: '', showRawHtml: false }, { q: '', a: '', showRawHtml: false }, { q: '', a: '', showRawHtml: false } ]; }
+
+                    column.elements.push(el);
+                },
+                removeSection(idx) { if (confirm("Remove section?")) this.sections.splice(idx, 1); },
+                removeRow(sec, idx) { sec.rows.splice(idx, 1); },
+                removeColumn(row, idx) { row.columns.splice(idx, 1); },
+                removeElement(col, idx) { col.elements.splice(idx, 1); },
+                moveSection(idx, dir) {
+                    if (idx + dir >= 0 && idx + dir < this.sections.length) {
+                        const item = this.sections.splice(idx, 1)[0];
+                        this.sections.splice(idx + dir, 0, item);
+                    }
+                },
+                moveRow(sec, idx, dir) {
+                    if (idx + dir >= 0 && idx + dir < sec.rows.length) {
+                        const item = sec.rows.splice(idx, 1)[0];
+                        sec.rows.splice(idx + dir, 0, item);
+                    }
+                },
+                moveElementUp(col, idx) {
+                    if (idx > 0) {
+                        const el = col.elements[idx];
+                        col.elements.splice(idx, 1);
+                        col.elements.splice(idx - 1, 0, el);
+                    }
+                },
+                moveElementDown(col, idx) {
+                    if (idx < col.elements.length - 1) {
+                        const el = col.elements[idx];
+                        col.elements.splice(idx, 1);
+                        col.elements.splice(idx + 1, 0, el);
+                    }
+                },
+                clearAll() { if (confirm("Clear everything?")) { this.sections = []; this.customCss = ''; this.customJs = ''; } },
+                saveData() { localStorage.setItem('htmlBuilderGeneralState', JSON.stringify({ sections: this.sections, customCss: this.customCss, customJs: this.customJs })); },
+                copyToClipboard() {
+                    if (this.sections.length === 0) return;
+                    navigator.clipboard.writeText(this.generatedHtml).then(() => alert("Copied!")).catch(err => alert("Copying failed!"));
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
